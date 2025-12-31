@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
 import { API_URL } from '../config';
+import { setAccessToken } from '../utils/api';
 import '../styles/Auth.css';
 
 function Login() {
@@ -20,16 +21,22 @@ function Login() {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Required for cookies
         body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors
+        if (data.errors) {
+          throw new Error(data.errors[0].message);
+        }
         throw new Error(data.message || 'Login failed');
       }
 
-      localStorage.setItem('token', data.token);
+      // Store access token and user data
+      setAccessToken(data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
 
       setToast({ show: true, message: 'Login successful!', type: 'success' });

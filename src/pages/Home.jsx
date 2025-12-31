@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../config';
+import { apiFetch, getAccessToken, logout } from '../utils/api';
 import '../styles/Home.css';
 
 function Home() {
@@ -11,17 +11,15 @@ function Home() {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const token = localStorage.getItem('token');
+      const accessToken = getAccessToken();
 
-      if (!token) {
+      if (!accessToken) {
         navigate('/');
         return;
       }
 
       try {
-        const response = await fetch(`${API_URL}/api/auth/verify`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiFetch('/api/auth/verify');
 
         if (!response.ok) {
           throw new Error('Invalid token');
@@ -30,8 +28,6 @@ function Home() {
         const data = await response.json();
         setUser(data.user);
       } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         navigate('/');
       } finally {
         setLoading(false);
@@ -41,10 +37,8 @@ function Home() {
     verifyUser();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/');
+  const handleLogout = async () => {
+    await logout();
   };
 
   if (loading) {

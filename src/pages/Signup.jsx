@@ -23,23 +23,23 @@ function Signup() {
       return;
     }
 
-    if (password.length < 6) {
-      setToast({ show: true, message: 'Password must be at least 6 characters', type: 'error' });
-      return;
-    }
-
     setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Required for cookies
         body: JSON.stringify({ name, email, password })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors
+        if (data.errors) {
+          throw new Error(data.errors[0].message);
+        }
         throw new Error(data.message || 'Signup failed');
       }
 
@@ -117,6 +117,9 @@ function Signup() {
                 </svg>
               </button>
             </div>
+            <small className="password-hint">
+              Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char (@$!%*?&)
+            </small>
           </div>
 
           <div className="input-group">
